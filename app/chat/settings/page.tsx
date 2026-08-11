@@ -9,9 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Settings as SettingsIcon, User, Bell, Palette, MessageSquare, Sun, Moon, Monitor } from 'lucide-react';
+import { Settings as SettingsIcon, User, Bell, Palette, MessageSquare, Sun, Moon, Monitor, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { settings, update, loading } = useSettings();
   const [displayName, setDisplayName] = useState(profile?.displayName || '');
+  const [uploadingBackground, setUploadingBackground] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
 
@@ -42,6 +44,17 @@ export default function SettingsPage() {
     { value: 'light' as const, label: 'Light', icon: Sun },
     { value: 'dark' as const, label: 'Dark', icon: Moon },
     { value: 'system' as const, label: 'System', icon: Monitor },
+  ];
+
+  const backgroundOptions = [
+    { value: 'none', label: 'None', style: 'bg-slate-200 dark:bg-slate-700' },
+    { value: 'teal', label: 'Teal', style: 'bg-gradient-to-br from-teal-200 to-cyan-200 dark:from-teal-900 dark:to-cyan-900' },
+    { value: 'beige', label: 'Beige', style: 'bg-gradient-to-br from-stone-100 to-amber-100 dark:from-stone-800 dark:to-amber-900' },
+    { value: 'sky', label: 'Sky', style: 'bg-gradient-to-br from-sky-200 to-cyan-200 dark:from-sky-900 dark:to-cyan-900' },
+    { value: 'mint', label: 'Mint', style: 'bg-gradient-to-br from-emerald-200 to-teal-200 dark:from-emerald-900 dark:to-teal-900' },
+    { value: 'peach', label: 'Peach', style: 'bg-gradient-to-br from-orange-200 to-rose-200 dark:from-orange-900 dark:to-rose-900' },
+    { value: 'lavender', label: 'Lavender', style: 'bg-gradient-to-br from-violet-200 to-purple-200 dark:from-violet-900 dark:to-purple-900' },
+    { value: 'cloud', label: 'Cloud', style: 'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700' },
   ];
 
   return (
@@ -153,28 +166,87 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Loading settings...</p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between rounded-xl hover:bg-muted/30 px-3 py-2 transition-colors">
-                    <Label htmlFor="send-on-enter">Send on Enter</Label>
-                    <Switch
-                      id="send-on-enter"
-                      checked={settings.sendOnEnter}
-                      onCheckedChange={(v) => update({ sendOnEnter: v })}
-                    />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {backgroundOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => update({ chatBackground: option.value })}
+                        className={cn(
+                          'group relative overflow-hidden rounded-3xl border-2 p-3 text-left transition-all duration-200',
+                          settings.chatBackground === option.value
+                            ? 'border-primary shadow-lg'
+                            : 'border-border/60 hover:border-primary/80'
+                        )}
+                      >
+                        <div className={cn('h-20 rounded-3xl', option.style)} />
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium">{option.label}</span>
+                          {settings.chatBackground === option.value && (
+                            <span className="rounded-full bg-primary/10 px-2 py-1 text-[11px] uppercase text-primary">Selected</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between rounded-xl hover:bg-muted/30 px-3 py-2 transition-colors">
-                    <Label htmlFor="show-timestamps">Show Timestamps</Label>
-                    <Switch
-                      id="show-timestamps"
-                      checked={settings.showTimestamps}
-                      onCheckedChange={(v) => update({ showTimestamps: v })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between rounded-xl hover:bg-muted/30 px-3 py-2 transition-colors">
-                    <Label htmlFor="compact-view">Compact View</Label>
-                    <Switch
-                      id="compact-view"
-                      checked={settings.compactView}
-                      onCheckedChange={(v) => update({ compactView: v })}
+
+                  <div className="rounded-3xl border border-border/60 p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <ImageIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm">Upload a background image</CardTitle>
+                        <CardDescription>Choose an image to show behind your chat.</CardDescription>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <Button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingBackground}
+                        className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-600"
+                      >
+                        {uploadingBackground ? 'Uploading…' : 'Upload image'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => update({ chatBackground: 'none' })}
+                        disabled={uploadingBackground}
+                        className="rounded-xl"
+                      >
+                        Reset background
+                      </Button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        event.target.value = '';
+                        setUploadingBackground(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          const res = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin',
+                          });
+                          if (!res.ok) throw new Error('Upload failed');
+                          const data = await res.json();
+                          update({ chatBackground: data.fileUrl });
+                          toast.success('Background uploaded');
+                        } catch (err) {
+                          toast.error('Failed to upload background');
+                        } finally {
+                          setUploadingBackground(false);
+                        }
+                      }}
                     />
                   </div>
                 </>

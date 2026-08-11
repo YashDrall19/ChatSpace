@@ -19,18 +19,20 @@ interface ChatViewProps {
 
 const BG_PATTERNS: Record<string, string> = {
   none: '',
-  sky: 'bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-slate-900 dark:to-slate-950',
-  cyan: 'bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-slate-900 dark:to-slate-950',
-  mint: 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-900 dark:to-slate-950',
-  lemon: 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-slate-900 dark:to-slate-950',
-  peach: 'bg-gradient-to-br from-orange-50 to-rose-50 dark:from-slate-900 dark:to-slate-950',
-  rose: 'bg-gradient-to-br from-rose-50 to-pink-50 dark:from-slate-900 dark:to-slate-950',
-  lavender: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-slate-900 dark:to-slate-950',
-  cloud: 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950',
+  teal: 'bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900 dark:to-cyan-900',
+  beige: 'bg-gradient-to-br from-stone-50 to-amber-50 dark:from-stone-900 dark:to-amber-950',
+  sky: 'bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-900 dark:to-cyan-950',
+  cyan: 'bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900 dark:to-teal-950',
+  mint: 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900 dark:to-teal-950',
+  lemon: 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900 dark:to-yellow-950',
+  peach: 'bg-gradient-to-br from-orange-50 to-rose-50 dark:from-orange-900 dark:to-rose-950',
+  rose: 'bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900 dark:to-pink-950',
+  lavender: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900 dark:to-purple-950',
+  cloud: 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700',
 };
 
 export function ChatView({ userId }: ChatViewProps) {
-  const { messages, loading, loadingMore, hasMore, loadMore } = useMessages(userId);
+  const { messages, loading, loadingMore, hasMore, loadMore, refreshMessages, updateMessage } = useMessages(userId);
   const { settings } = useSettings();
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [showStarred, setShowStarred] = useState(false);
@@ -81,6 +83,7 @@ export function ChatView({ userId }: ChatViewProps) {
             size="icon"
             onClick={() => {
               setShowSearch(!showSearch);
+              setShowStarred(false);
               if (showSearch) setSearchResults([]);
             }}
             className="rounded-xl transition-transform hover:scale-105"
@@ -90,7 +93,7 @@ export function ChatView({ userId }: ChatViewProps) {
           <Button
             variant={showStarred ? 'default' : 'ghost'}
             size="icon"
-            onClick={() => setShowStarred(!showStarred)}
+            onClick={() => {setShowStarred(!showStarred); setShowSearch(false);}}
             className="rounded-xl transition-transform hover:scale-105"
           >
             <Star className={`h-4 w-4 ${showStarred ? 'fill-current' : ''}`} />
@@ -110,7 +113,13 @@ export function ChatView({ userId }: ChatViewProps) {
 
       {/* Starred panel */}
       {showStarred && !showSearch && (
-        <StarredPanel userId={userId} messages={messages} onClose={() => setShowStarred(false)} />
+        <StarredPanel
+          userId={userId}
+          messages={messages}
+          onClose={() => setShowStarred(false)}
+          onMessageUpdate={updateMessage}
+          onRefreshMessages={refreshMessages}
+        />
       )}
 
       {/* Messages */}
@@ -143,6 +152,8 @@ export function ChatView({ userId }: ChatViewProps) {
             messages={displayMessages}
             userId={userId}
             onReply={setReplyTo}
+            onMessageUpdate={updateMessage}
+            onRefreshMessages={refreshMessages}
             loadingMore={loadingMore}
             hasMore={hasMore}
             onLoadMore={loadMore}
@@ -152,7 +163,7 @@ export function ChatView({ userId }: ChatViewProps) {
 
       {/* Input */}
       {!showSearch && (
-        <MessageInput userId={userId} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
+        <MessageInput userId={userId} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} onSent={refreshMessages} />
       )}
     </div>
   );

@@ -14,9 +14,10 @@ interface MessageInputProps {
   userId: string;
   replyTo: Message | null;
   onCancelReply: () => void;
+  onSent?: () => Promise<void>;
 }
 
-export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputProps) {
+export function MessageInput({ userId, replyTo, onCancelReply, onSent }: MessageInputProps) {
   const [text, setText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -37,10 +38,11 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
       setText('');
       onCancelReply();
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      await onSent?.();
     } catch {
       toast.error('Failed to send message');
     }
-  }, [text, userId, replyTo, onCancelReply]);
+  }, [text, userId, replyTo, onCancelReply, onSent]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -72,6 +74,7 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
       });
       setText('');
       onCancelReply();
+      await onSent?.();
     } catch {
       toast.error('Failed to upload file');
     } finally {
@@ -98,6 +101,7 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
         replyToType: replyTo?.type,
       });
       onCancelReply();
+      await onSent?.();
     } catch {
       toast.error('Failed to upload voice note');
     } finally {

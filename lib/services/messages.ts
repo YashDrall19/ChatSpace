@@ -78,7 +78,7 @@ export async function updateMessage(
   if (updates.isStarred !== undefined) { fields.push('is_starred = ?'); values.push(updates.isStarred); }
   if (updates.reactions !== undefined) { fields.push('reactions = ?'); values.push(JSON.stringify(updates.reactions)); }
   if (fields.length === 0) return;
-  values.push(userId, messageId);
+  values.push(messageId, userId);
   await execute(`UPDATE messages SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`, values);
 }
 

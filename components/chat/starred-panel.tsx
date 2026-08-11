@@ -10,9 +10,11 @@ interface StarredPanelProps {
   userId: string;
   messages: Message[];
   onClose: () => void;
+  onMessageUpdate: (messageId: string, updates: Partial<Message>) => void;
+  onRefreshMessages: () => void;
 }
 
-export function StarredPanel({ userId, messages, onClose }: StarredPanelProps) {
+export function StarredPanel({ userId, messages, onClose, onMessageUpdate, onRefreshMessages }: StarredPanelProps) {
   const starred = messages.filter((m) => m.isStarred);
 
   return (
@@ -39,6 +41,8 @@ export function StarredPanel({ userId, messages, onClose }: StarredPanelProps) {
                 message={m}
                 userId={userId}
                 onReply={() => {}}
+                onUpdateMessage={onMessageUpdate}
+                onRefreshMessages={onRefreshMessages}
                 showDateSeparator={false}
               />
             ))

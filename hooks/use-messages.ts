@@ -10,22 +10,27 @@ export function useMessages(userId: string | undefined) {
   const [hasMore, setHasMore] = useState(true);
   const cursorRef = useRef<number | undefined>(undefined);
 
+  const fetchMessages = useCallback(async (): Promise<Message[]> => {
+    const res = await fetch('/api/messages', { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('Failed to load messages');
+    const data = await res.json();
+    return data.messages as Message[];
+  }, [userId]);
+
   useEffect(() => {
     if (!userId) {
       setMessages([]);
       setLoading(false);
       return;
     }
-    setLoading(true);
+
     let cancelled = false;
+    setLoading(true);
 
     async function load() {
       try {
-        const res = await fetch('/api/messages', { credentials: 'same-origin' });
-        if (!res.ok) return;
-        const data = await res.json();
+        const msgs = await fetchMessages();
         if (cancelled) return;
-        const msgs: Message[] = data.messages;
         setMessages(msgs);
         if (msgs.length > 0) {
           cursorRef.current = parseInt(msgs[msgs.length - 1].id, 10);
@@ -33,18 +38,39 @@ export function useMessages(userId: string | undefined) {
         } else {
           setHasMore(false);
         }
+      } catch {
+        if (!cancelled) {
+          setMessages([]);
+          setHasMore(false);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-    load();
 
+    load();
     const interval = setInterval(load, 5000);
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [userId]);
+  }, [userId, fetchMessages]);
+
+  const refreshMessages = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const msgs = await fetchMessages();
+      setMessages(msgs);
+      if (msgs.length > 0) {
+        cursorRef.current = parseInt(msgs[msgs.length - 1].id, 10);
+        setHasMore(msgs.length >= 20);
+      } else {
+        setHasMore(false);
+      }
+    } catch {
+      // ignore refresh failures
+    }
+  }, [userId, fetchMessages]);
 
   const loadMore = useCallback(async () => {
     if (!userId || loadingMore || !hasMore || !cursorRef.current) return;
@@ -64,11 +90,17 @@ export function useMessages(userId: string | undefined) {
     }
   }, [userId, loadingMore, hasMore]);
 
+  const updateMessage = useCallback((messageId: string, updates: Partial<Message>) => {
+    setMessages((prev) => prev.map((msg) => (msg.id === messageId ? { ...msg, ...updates } : msg)));
+  }, []);
+
   return {
     messages,
     loading,
     loadingMore,
     hasMore,
     loadMore,
+    refreshMessages,
+    updateMessage,
   };
 }

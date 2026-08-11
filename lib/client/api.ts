@@ -2,11 +2,22 @@ import type { Message, MessageType, Reaction } from '@/types';
 
 async function apiFetch(url: string, options?: RequestInit) {
   const res = await fetch(url, { credentials: 'same-origin', ...options });
+  const text = await res.text();
   if (!res.ok) {
-    const data = await res.json().catch(() => ({ error: 'Request failed' }));
+    let data;
+    try {
+      data = text ? JSON.parse(text) : { error: 'Request failed' };
+    } catch {
+      data = { error: text || 'Request failed' };
+    }
     throw new Error(data.error || 'Request failed');
   }
-  return res.json();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
 }
 
 export async function apiCreateMessage(
@@ -42,12 +53,12 @@ export async function apiSearchMessages(userId: string, term: string): Promise<M
   return result.results;
 }
 
-export async function apiToggleStar(userId: string, messageId: string, current: boolean): Promise<void> {
-  await apiUpdateMessage(userId, messageId, { isStarred: !current });
+export async function apiToggleStar(userId: string, messageId: string, nextValue: boolean): Promise<void> {
+  await apiUpdateMessage(userId, messageId, { isStarred: nextValue });
 }
 
-export async function apiTogglePin(userId: string, messageId: string, current: boolean): Promise<void> {
-  await apiUpdateMessage(userId, messageId, { isPinned: !current });
+export async function apiTogglePin(userId: string, messageId: string, nextValue: boolean): Promise<void> {
+  await apiUpdateMessage(userId, messageId, { isPinned: nextValue });
 }
 
 export async function apiToggleReaction(

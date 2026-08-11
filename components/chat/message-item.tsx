@@ -36,12 +36,21 @@ interface MessageItemProps {
   message: Message;
   userId: string;
   onReply: (message: Message) => void;
+  onUpdateMessage?: (messageId: string, updates: Partial<Message>) => void;
+  onRefreshMessages?: () => void;
   showDateSeparator: boolean;
 }
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
-export function MessageItem({ message, userId, onReply, showDateSeparator }: MessageItemProps) {
+export function MessageItem({
+  message,
+  userId,
+  onReply,
+  onUpdateMessage = () => {},
+  onRefreshMessages = () => {},
+  showDateSeparator,
+}: MessageItemProps) {
   const [showReactions, setShowReactions] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -55,18 +64,28 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
   }, []);
 
   async function handleStar() {
+    const nextValue = !message.isStarred;
+    onUpdateMessage?.(message.id, { isStarred: nextValue });
+
     try {
-      await toggleStar(userId, message.id, message.isStarred);
-    } catch {
-      toast.error('Failed to update star');
+      await toggleStar(userId, message.id, nextValue);
+      onRefreshMessages?.();
+    } catch (error) {
+      onUpdateMessage?.(message.id, { isStarred: message.isStarred });
+      toast.error((error as Error)?.message || 'Failed to update star');
     }
   }
 
   async function handlePin() {
+    const nextValue = !message.isPinned;
+    onUpdateMessage?.(message.id, { isPinned: nextValue });
+
     try {
-      await togglePin(userId, message.id, message.isPinned);
-    } catch {
-      toast.error('Failed to update pin');
+      await togglePin(userId, message.id, nextValue);
+      onRefreshMessages?.();
+    } catch (error) {
+      onUpdateMessage?.(message.id, { isPinned: message.isPinned });
+      toast.error((error as Error)?.message || 'Failed to update pin');
     }
   }
 
@@ -81,7 +100,13 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
 
   async function handleReaction(emoji: string) {
     try {
+      const updated = message.reactions.find((r) => r.emoji === emoji && r.uid === userId)
+        ? message.reactions.filter((r) => !(r.emoji === emoji && r.uid === userId))
+        : [...message.reactions, { emoji, uid: userId, createdAt: Date.now() }];
+
       await toggleReaction(userId, message.id, message.reactions, emoji);
+      onUpdateMessage?.(message.id, { reactions: updated });
+      onRefreshMessages?.();
       setShowReactions(false);
     } catch {
       toast.error('Failed to add reaction');

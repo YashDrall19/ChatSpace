@@ -1,9 +1,12 @@
 import mysql from 'mysql2/promise';
 
-let pool: mysql.Pool | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var __mysqlPool: mysql.Pool | undefined;
+}
 
 export function getPool(): mysql.Pool {
-  if (pool) return pool;
+  if (globalThis.__mysqlPool) return globalThis.__mysqlPool;
 
   const host = process.env.MYSQL_HOST || 'localhost';
   const port = parseInt(process.env.MYSQL_PORT || '3306', 10);
@@ -11,7 +14,7 @@ export function getPool(): mysql.Pool {
   const password = process.env.MYSQL_PASSWORD || 'Apple@0109';
   const database = process.env.MYSQL_DATABASE || 'vault';
 
-  pool = mysql.createPool({
+  globalThis.__mysqlPool = mysql.createPool({
     host,
     port,
     user,
@@ -23,7 +26,7 @@ export function getPool(): mysql.Pool {
     multipleStatements: true,
   });
 
-  return pool;
+  return globalThis.__mysqlPool;
 }
 
 export async function query<T extends Record<string, unknown>[] = Record<string, unknown>[]>(

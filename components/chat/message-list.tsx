@@ -10,6 +10,8 @@ interface MessageListProps {
   messages: Message[];
   userId: string;
   onReply: (message: Message) => void;
+  onMessageUpdate: (messageId: string, updates: Partial<Message>) => void;
+  onRefreshMessages: () => void;
   loadingMore: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
@@ -19,6 +21,8 @@ export function MessageList({
   messages,
   userId,
   onReply,
+  onMessageUpdate,
+  onRefreshMessages,
   loadingMore,
   hasMore,
   onLoadMore,
@@ -72,6 +76,8 @@ export function MessageList({
               message={message}
               userId={userId}
               onReply={onReply}
+              onUpdateMessage={onMessageUpdate}
+              onRefreshMessages={onRefreshMessages}
               showDateSeparator={idx === 0 || isDifferentDay(messages[messages.length - 1 - (idx - 1)]?.createdAt, message.createdAt)}
             />
           ))}

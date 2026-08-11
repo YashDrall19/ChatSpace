@@ -19,6 +19,7 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   signOut: () => Promise<void>;
+  setSettings: (next: UserSettings | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextValue>({
   refreshProfile: async () => {},
   refreshAuth: async () => {},
   signOut: async () => {},
+  setSettings: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -36,6 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const updateSettingsState = useCallback((next: UserSettings | null) => {
+    setSettings(next);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -114,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, settings, loading, refreshProfile, refreshAuth, signOut }}>
+    <AuthContext.Provider value={{ user, profile, settings, loading, refreshProfile, refreshAuth, signOut, setSettings: updateSettingsState }}>
       {children}
     </AuthContext.Provider>
   );
