@@ -8,7 +8,7 @@ export function getPool(): mysql.Pool {
   const host = process.env.MYSQL_HOST || 'localhost';
   const port = parseInt(process.env.MYSQL_PORT || '3306', 10);
   const user = process.env.MYSQL_USER || 'root';
-  const password = process.env.MYSQL_PASSWORD || '';
+  const password = process.env.MYSQL_PASSWORD || 'Apple@0109';
   const database = process.env.MYSQL_DATABASE || 'vault';
 
   pool = mysql.createPool({

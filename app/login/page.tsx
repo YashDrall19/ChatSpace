@@ -12,7 +12,7 @@ import { Loader2, Lock, Mail, Shield, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshAuth } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,8 +36,8 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign in failed');
+      await refreshAuth();
       router.replace('/chat');
-      router.refresh();
     } catch (err) {
       toast.error('Sign in failed', { description: (err as Error).message });
     } finally {
@@ -58,8 +58,8 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign up failed');
+      await refreshAuth();
       router.replace('/chat');
-      router.refresh();
     } catch (err) {
       toast.error('Sign up failed', { description: (err as Error).message });
     } finally {

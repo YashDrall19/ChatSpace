@@ -41,7 +41,7 @@ export function MessageList({
   }, []);
 
   return (
-    <div ref={containerRef} className="mx-auto max-w-3xl px-4 py-4 lg:px-6">
+    <div ref={containerRef} className="w-full px-2 py-3 lg:px-4">
       {hasMore && (
         <div className="mb-4 flex justify-center">
           <Button

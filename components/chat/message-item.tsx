@@ -21,6 +21,15 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { formatTimestamp, formatFileSize, formatDuration } from '@/lib/utils/format';
 import {
   apiToggleStar as toggleStar,
@@ -44,7 +53,10 @@ const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
 export function MessageItem({ message, userId, onReply, showDateSeparator }: MessageItemProps) {
   const [showReactions, setShowReactions] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const reactionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isReply = Boolean(message.replyTo);
 
   useEffect(() => {
     return () => {
@@ -101,13 +113,8 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
         </div>
       )}
 
-      <div className="flex items-start gap-2 py-1.5 hover:bg-muted/30 -mx-2 rounded-lg px-2">
-        {/* Reply preview */}
-        {message.replyTo && message.replyToText && (
-          <div className="absolute" />
-        )}
-
-        <div className="flex-1">
+      <div className={`flex items-start gap-2 py-1.5 hover:bg-muted/70 transition-colors -mx-2 rounded-lg px-2 ${isReply ? 'justify-start' : 'justify-end'}`}>
+        <div className={`flex-1 flex flex-col ${isReply ? 'items-start' : 'items-end'}`}>
           {/* Reply context */}
           {message.replyTo && message.replyToText && (
             <div className="mb-1 ml-2 border-l-2 border-primary/40 pl-2 text-xs text-muted-foreground">
@@ -257,7 +264,7 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
                 Reply
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+              <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDeleteOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
@@ -265,6 +272,40 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
           </DropdownMenu>
         </div>
       </div>
+
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent className="w-full max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete message?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this message? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto"
+              onClick={async () => {
+                setIsDeleting(true);
+                try {
+                  await handleDelete();
+                  setConfirmDeleteOpen(false);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

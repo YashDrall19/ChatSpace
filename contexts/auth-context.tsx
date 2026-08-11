@@ -17,6 +17,8 @@ interface AuthContextValue {
   settings: UserSettings | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -25,6 +27,8 @@ const AuthContext = createContext<AuthContextValue>({
   settings: null,
   loading: true,
   refreshProfile: async () => {},
+  refreshAuth: async () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -53,6 +57,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const refreshAuth = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+        setProfile(data.profile);
+        setSettings(data.settings);
+      } else {
+        setUser(null);
+        setProfile(null);
+        setSettings(null);
+      }
+    } catch {
+      setUser(null);
+      setProfile(null);
+      setSettings(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    try {
+      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
+    } catch {
+      // ignore failure, still clear local state
+    }
+    setUser(null);
+    setProfile(null);
+    setSettings(null);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     async function checkAuth() {
@@ -76,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, settings, loading, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, settings, loading, refreshProfile, refreshAuth, signOut }}>
       {children}
     </AuthContext.Provider>
   );
