@@ -1,0 +1,89 @@
+'use client';
+
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { UserProfile, UserSettings } from '@/types';
+import { DEFAULT_SETTINGS } from '@/types';
+
+interface AuthUser {
+  id: number;
+  email: string;
+  displayName: string | null;
+  photoURL: string | null;
+}
+
+interface AuthContextValue {
+  user: AuthUser | null;
+  profile: UserProfile | null;
+  settings: UserSettings | null;
+  loading: boolean;
+  refreshProfile: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue>({
+  user: null,
+  profile: null,
+  settings: null,
+  loading: true,
+  refreshProfile: async () => {},
+});
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    try {
+      const [profileRes, settingsRes] = await Promise.all([
+        fetch('/api/user', { credentials: 'same-origin' }),
+        fetch('/api/user/settings', { credentials: 'same-origin' }),
+      ]);
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        setProfile(data.profile);
+      }
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        setSettings(data.settings);
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          setProfile(data.profile);
+          setSettings(data.settings);
+        }
+      } catch {
+        // Not authenticated
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    checkAuth();
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, profile, settings, loading, refreshProfile }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
+export { DEFAULT_SETTINGS };
