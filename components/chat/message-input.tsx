@@ -113,9 +113,9 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
   };
 
   return (
-    <div className="shrink-0 border-t bg-card p-3 lg:p-4">
+    <div className="shrink-0 border-t border-border/60 bg-card/80 p-3 backdrop-blur-xl lg:p-4">
       {replyTo && (
-        <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+        <div className="mb-2 flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2 ring-1 ring-border/30 animate-scale-in">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="text-primary">↩</span>
             <span className="truncate">
@@ -129,14 +129,19 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
       )}
 
       {uploading && (
-        <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="mb-2 flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
           <span>Uploading... {uploadProgress > 0 ? `${Math.round(uploadProgress)}%` : ''}</span>
+          {uploadProgress > 0 && (
+            <div className="ml-2 h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-600 transition-all" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          )}
         </div>
       )}
 
       {isRecording ? (
-        <div className="flex items-center gap-3 rounded-xl border bg-background p-2">
+        <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-background p-2 shadow-sm animate-scale-in">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
             <span className="text-sm font-medium tabular-nums">
@@ -144,10 +149,10 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
             </span>
           </div>
           <div className="flex-1" />
-          <Button variant="ghost" size="icon" onClick={cancel}>
+          <Button variant="ghost" size="icon" onClick={cancel} className="rounded-xl">
             <X className="h-4 w-4" />
           </Button>
-          <Button size="icon" onClick={handleVoiceStop} className="bg-primary">
+          <Button size="icon" onClick={handleVoiceStop} className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-600">
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -163,7 +168,7 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 rounded-xl transition-transform hover:scale-110 hover:bg-muted"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
           >
@@ -178,18 +183,18 @@ export function MessageInput({ userId, replyTo, onCancelReply }: MessageInputPro
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="min-h-[40px] max-h-[120px] resize-none"
+            className="min-h-[40px] max-h-[120px] resize-none rounded-2xl border-border/60 bg-muted/30 focus-visible:bg-background transition-colors"
             rows={1}
           />
           {text.trim() ? (
-            <Button size="icon" className="shrink-0" onClick={sendText} disabled={uploading}>
+            <Button size="icon" className="shrink-0 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-600 transition-transform hover:scale-110 hover:from-sky-600 hover:to-cyan-700 animate-pop" onClick={sendText} disabled={uploading}>
               <Send className="h-4 w-4" />
             </Button>
           ) : (
             <Button
               variant="ghost"
               size="icon"
-              className="shrink-0"
+              className="shrink-0 rounded-xl transition-transform hover:scale-110 hover:bg-muted"
               onClick={start}
               disabled={uploading}
             >

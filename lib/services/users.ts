@@ -39,7 +39,7 @@ export async function updateUserProfile(userId: number, updates: Partial<UserPro
 export async function getUserSettings(userId: number): Promise<UserSettings> {
   await ensureUserSettings(userId);
   const rows = await query<Array<Record<string, unknown>>>(
-    'SELECT theme, accent_color, send_on_enter, show_timestamps, compact_view, notifications FROM user_settings WHERE user_id = ? LIMIT 1',
+    'SELECT theme, accent_color, send_on_enter, show_timestamps, compact_view, notifications, chat_background FROM user_settings WHERE user_id = ? LIMIT 1',
     [userId]
   );
   if (rows.length === 0) return { ...DEFAULT_SETTINGS };
@@ -51,6 +51,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
     showTimestamps: Boolean(row.show_timestamps),
     compactView: Boolean(row.compact_view),
     notifications: Boolean(row.notifications),
+    chatBackground: (row.chat_background as string) || 'none',
   };
 }
 
@@ -64,6 +65,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
   if (settings.showTimestamps !== undefined) { fields.push('show_timestamps = ?'); values.push(settings.showTimestamps); }
   if (settings.compactView !== undefined) { fields.push('compact_view = ?'); values.push(settings.compactView); }
   if (settings.notifications !== undefined) { fields.push('notifications = ?'); values.push(settings.notifications); }
+  if (settings.chatBackground !== undefined) { fields.push('chat_background = ?'); values.push(settings.chatBackground); }
   if (fields.length === 0) return;
   values.push(userId);
   await execute(`UPDATE user_settings SET ${fields.join(', ')} WHERE user_id = ?`, values);

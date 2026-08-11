@@ -42,6 +42,7 @@ export interface UserSettings {
   showTimestamps: boolean;
   compactView: boolean;
   notifications: boolean;
+  chatBackground: string;
 }
 
 export interface PaginatedMessages {
@@ -69,4 +70,5 @@ export const DEFAULT_SETTINGS: UserSettings = {
   showTimestamps: true,
   compactView: false,
   notifications: true,
+  chatBackground: 'none',
 };

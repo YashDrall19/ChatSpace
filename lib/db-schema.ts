@@ -23,6 +23,7 @@ export async function initDatabase(): Promise<void> {
       show_timestamps BOOLEAN DEFAULT TRUE,
       compact_view BOOLEAN DEFAULT FALSE,
       notifications BOOLEAN DEFAULT TRUE,
+      chat_background VARCHAR(500) DEFAULT 'none',
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);

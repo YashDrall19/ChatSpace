@@ -1,17 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import {
-  Star,
-  Pin,
-  PinOff,
-  Reply,
-  Trash2,
-  MoreVertical,
-  Download,
-  FileText,
-  File as FileIcon,
-} from 'lucide-react';
+import { Star, Pin, PinOff, Reply, Trash2, MoveVertical as MoreVertical, Download, FileText, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -113,7 +103,7 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
         </div>
       )}
 
-      <div className={`flex items-start gap-2 py-1.5 hover:bg-muted/70 transition-colors -mx-2 rounded-lg px-2 ${isReply ? 'justify-start' : 'justify-end'}`}>
+      <div className={`flex items-start gap-2 py-1.5 -mx-2 rounded-lg px-2 transition-all duration-200 hover:bg-muted/40 ${isReply ? 'justify-start' : 'justify-end'}`}>
         <div className={`flex-1 flex flex-col ${isReply ? 'items-start' : 'items-end'}`}>
           {/* Reply context */}
           {message.replyTo && message.replyToText && (
@@ -124,7 +114,11 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
 
           {/* Message bubble */}
           <div
-            className="relative inline-block max-w-[85%] rounded-2xl bg-card px-4 py-2.5 shadow-sm ring-1 ring-border/50"
+            className={`relative inline-block max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-200 hover:shadow-md ${
+              isReply
+                ? 'bg-card ring-1 ring-border/50'
+                : 'bg-gradient-to-br from-sky-500 to-cyan-600 text-white'
+            }`}
             onMouseLeave={() => {
               reactionTimer.current = setTimeout(() => setShowReactions(false), 200);
             }}
@@ -166,7 +160,7 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
             )}
 
             {/* Timestamp */}
-            <span className="mt-1 block text-[10px] text-muted-foreground/70">
+            <span className={`mt-1 block text-[10px] ${isReply ? 'text-muted-foreground/70' : 'text-white/60'}`}>
               {formatTimestamp(message.createdAt)}
             </span>
 

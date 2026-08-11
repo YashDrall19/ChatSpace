@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { ChatSidebar } from '@/components/chat/chat-sidebar';
 import type { MediaItem } from '@/types';
-import { FolderOpen, Download, FileText, Loader as Loader2 } from 'lucide-react';
+import { FolderOpen, Download, FileText } from 'lucide-react';
 import { formatTimestamp, formatFileSize } from '@/lib/utils/format';
 
 export default function FilesPage() {
@@ -28,8 +28,8 @@ export default function FilesPage() {
     <>
       <ChatSidebar />
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur-xl lg:px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-lg shadow-primary/20">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/60 bg-card/80 px-4 backdrop-blur-xl lg:px-6">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-lg shadow-primary/20">
             <FolderOpen className="h-5 w-5" />
           </div>
           <div>
