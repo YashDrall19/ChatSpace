@@ -2,7 +2,20 @@ import { query, execute, insert } from '@/lib/db';
 import type { UserProfile, UserSettings } from '@/types';
 import { DEFAULT_SETTINGS } from '@/types';
 
+async function ensureUserSettingsSchema(): Promise<void> {
+  const rows = await query<Array<{ column_name: string }>>(
+    'SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1',
+    ['user_settings', 'chat_background']
+  );
+  if (rows.length === 0) {
+    await execute(
+      "ALTER TABLE user_settings ADD COLUMN chat_background VARCHAR(500) DEFAULT 'none'"
+    );
+  }
+}
+
 export async function ensureUserSettings(userId: number): Promise<void> {
+  await ensureUserSettingsSchema();
   await insert(
     'INSERT IGNORE INTO user_settings (user_id) VALUES (?)',
     [userId]
@@ -56,6 +69,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
 }
 
 export async function updateUserSettings(userId: number, settings: Partial<UserSettings>): Promise<void> {
+  await ensureUserSettingsSchema();
   await ensureUserSettings(userId);
   const fields: string[] = [];
   const values: unknown[] = [];

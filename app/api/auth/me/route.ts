@@ -8,6 +8,10 @@ export async function GET(req: NextRequest) {
     const userId = getUserIdFromRequest(req);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('GET /api/auth/me userId:', userId);
+    }
+
     const user = await getAuthUser(userId);
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -17,7 +21,8 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json({ user, profile, settings });
-  } catch {
+  } catch (err) {
+    console.error('GET /api/auth/me error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

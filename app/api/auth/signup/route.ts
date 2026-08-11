@@ -16,9 +16,10 @@ export async function POST(req: NextRequest) {
     return setAuthCookie(res, token);
   } catch (err) {
     const message = (err as Error).message;
+    console.error('POST /api/auth/signup error:', err);
     if (message.includes('already exists')) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
-    return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Failed to create account' : message }, { status: 500 });
   }
 }

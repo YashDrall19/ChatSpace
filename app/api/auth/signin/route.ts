@@ -13,9 +13,10 @@ export async function POST(req: NextRequest) {
     return setAuthCookie(res, token);
   } catch (err) {
     const message = (err as Error).message;
+    console.error('POST /api/auth/signin error:', err);
     if (message.includes('Invalid')) {
       return NextResponse.json({ error: message }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Failed to sign in' }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Failed to sign in' : message }, { status: 500 });
   }
 }

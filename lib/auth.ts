@@ -39,6 +39,13 @@ export function getTokenFromCookies(): string | undefined {
 
 export function getTokenFromRequest(req: NextRequest): string | undefined {
   const authHeader = req.headers.get('authorization');
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('getTokenFromRequest headers:', {
+      authorization: authHeader,
+      cookie: req.headers.get('cookie')?.slice(0, 200),
+      cookieParsed: req.cookies.get(COOKIE_NAME)?.value ? 'present' : 'missing',
+    });
+  }
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
