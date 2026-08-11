@@ -141,7 +141,7 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
             {(message.type === 'file' || message.type === 'pdf' || message.type === 'document') && message.fileUrl && (
               <a
                 href={message.fileUrl}
-                download={message.fileName}
+                // download={message.fileName}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 rounded-lg bg-muted/50 p-2 hover:bg-muted transition-colors"
@@ -155,7 +155,7 @@ export function MessageItem({ message, userId, onReply, showDateSeparator }: Mes
                     {formatFileSize(message.fileSize || 0)}
                   </p>
                 </div>
-                <Download className="h-4 w-4 text-muted-foreground" />
+                {/* <Download className="h-4 w-4 text-muted-foreground" /> */}
               </a>
             )}
 

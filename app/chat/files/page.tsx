@@ -60,7 +60,7 @@ export default function FilesPage() {
                 <a
                   key={item.id}
                   href={item.fileUrl}
-                  download={item.fileName}
+                  // download={item.fileName}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 rounded-2xl border border-border/50 bg-card/80 p-3 shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:translate-x-0.5 animate-slide-up"
@@ -75,7 +75,7 @@ export default function FilesPage() {
                       {formatFileSize(item.fileSize || 0)} · {formatTimestamp(item.createdAt)}
                     </p>
                   </div>
-                  <Download className="h-4 w-4 text-muted-foreground transition-all group-hover:text-primary group-hover:scale-110" />
+                  {/* <Download className="h-4 w-4 text-muted-foreground transition-all group-hover:text-primary group-hover:scale-110" /> */}
                 </a>
               ))}
             </div>
