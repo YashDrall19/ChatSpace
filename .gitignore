@@ -46,3 +46,6 @@ Thumbs.db
 
 # Downloaded local speech models are runtime assets, not source code.
 models/
+
+public
+demo-video-assets
