@@ -34,7 +34,7 @@ curl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin 
 export WHISPER_MODEL_PATH="$PWD/models/ggml-base.bin"
 ```
 
-For higher transcription accuracy in a production deployment, use Whisper's larger multilingual `small` model instead:
+For Hindi, mixed Hindi-English, or production media analysis, use Whisper's larger multilingual `small` model. The base model is suitable only for quick local testing; it can mistranscribe short/noisy Hindi speech. ChatSpace automatically prefers this file when it is present:
 
 ```sh
 curl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin -o models/ggml-small.bin
@@ -42,6 +42,8 @@ export WHISPER_MODEL_PATH="$PWD/models/ggml-small.bin"
 ```
 
 Optional variables: `OLLAMA_URL`, `OLLAMA_TEXT_MODEL`, `OLLAMA_VISION_MODEL`, `FFMPEG_BIN`, and `WHISPER_BIN`. Defaults are `http://127.0.0.1:11434`, `qwen3-vl:4b` for both text and vision, `ffmpeg`, and `whisper-cli`.
+
+`OLLAMA_KEEP_ALIVE` defaults to `0s`, unloading Qwen after every response. This is intentional on Apple Silicon: it releases unified GPU memory so Whisper can transcribe audio/video rather than failing after a vision request. Raise it only on a machine with enough free memory to hold Qwen and Whisper simultaneously.
 
 Copy `.env.example` to `.env.local` and set persistent absolute paths before production use. If you need a smaller development model, use Qwen2.5-VL 3B instead:
 
@@ -51,13 +53,17 @@ ollama pull qwen2.5vl:3b
 
 Then set both `OLLAMA_TEXT_MODEL` and `OLLAMA_VISION_MODEL` to `qwen2.5vl:3b`.
 
-Open **AI chat review** using the robot icon in the chat header. Each review considers the most recent 100 messages and up to 20 media items. Text, images, voice notes, audio files, and videos are analyzed independently. Every task/reminder must have a verbatim source quote that the app verifies before displaying it; a deterministic English/Hindi/Roman-Hindi fallback preserves explicit commitments if the model misses them. The quote is displayed below the task so users can audit each result. Analyses are cached in MySQL and reused until the message changes, so the same media is not repeatedly processed. Media that cannot be processed is reported in the result rather than preventing the rest of the chat from being reviewed.
+Open **AI chat review** using the robot icon in the chat header. Message/media analysis is queued when a message is created, then stored in MySQL. The modal reads the saved review immediately; it never waits for a full AI run. Text, images, voice notes, audio files, and videos are analyzed independently. Every task/reminder must have a verbatim source quote that the app verifies before displaying it; a deterministic English/Hindi/Roman-Hindi fallback preserves explicit commitments if the model misses them. The quote is displayed below the task so users can audit each result. Analyses are cached in MySQL and reused until the message changes, so the same media is not repeatedly processed. Media that cannot be processed is reported in the result rather than preventing the rest of the chat from being reviewed.
+
+Reviews have explicit `pending`, `processing`, `ready`, and `failed` states. A failed review preserves its last saved result and exposes a retry action; it never leaves the modal in an infinite spinner.
 
 The review endpoint permits one running review per user at a time to prevent duplicate local-model jobs.
 
+If Ollama is using Apple Metal memory while Whisper transcribes a video, ChatSpace automatically retries Whisper on CPU. This is slower but ensures a transient GPU-memory error does not silently omit a spoken task.
+
 ## Production deployment
 
-This local AI workflow requires a long-running Node.js server with persistent disk access, Ollama, Whisper.cpp, and FFmpeg installed on the same machine (or an explicitly configured private Ollama host). It cannot run on Netlify/Vercel-style serverless hosting: those environments cannot access your local Ollama process, local uploads, or native Whisper/FFmpeg binaries.
+This local AI workflow requires a long-running Node.js server with persistent disk access, Ollama, Whisper.cpp, and FFmpeg installed on the same machine (or an explicitly configured private Ollama host). The persisted background worker is designed for this environment. It cannot run on Netlify/Vercel-style serverless hosting: those environments cannot access your local Ollama process, local uploads, or native Whisper/FFmpeg binaries.
 
 For production, deploy the complete app on a VM, Mac mini, or other persistent server, provide MySQL and a persistent uploads volume, run `ollama serve` as a service, and set `WHISPER_MODEL_PATH` to the persistent Whisper model location. Keep all AI services private behind the app server; do not expose the Ollama port publicly.
 

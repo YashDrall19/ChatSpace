@@ -3,6 +3,8 @@ import { getUserIdFromRequest } from '@/lib/auth';
 import { getMessages, createMessage, loadOlderMessages } from '@/lib/services/messages';
 import type { MessageType } from '@/types';
 
+export const runtime = 'nodejs';
+
 export async function GET(req: NextRequest) {
   try {
     const userId = getUserIdFromRequest(req);
@@ -27,6 +29,10 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const id = await createMessage(userId, { ...body, type: body.type as MessageType });
+    // Do not make sending a message wait for local AI. The persisted review
+    // worker processes the new content in the background.
+    const { queueAiReview } = await import('@/lib/services/ai-review-store');
+    await queueAiReview(userId);
     return NextResponse.json({ id });
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
@@ -44,6 +50,8 @@ export async function PATCH(req: NextRequest) {
 
     const { updateMessage } = await import('@/lib/services/messages');
     await updateMessage(userId, parseInt(id, 10), updates);
+    const { queueAiReview } = await import('@/lib/services/ai-review-store');
+    await queueAiReview(userId);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
@@ -65,6 +73,8 @@ export async function DELETE(req: NextRequest) {
       await deleteFile(msg.fileUrl);
     }
     await deleteMessage(userId, parseInt(messageId, 10));
+    const { queueAiReview } = await import('@/lib/services/ai-review-store');
+    await queueAiReview(userId);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

@@ -155,17 +155,18 @@ export interface ChatAiReview {
   warnings: string[];
 }
 
-export async function apiCreateAiReview(): Promise<ChatAiReview> {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 240_000);
-  try {
-    return await apiFetch('/api/ai/summary', { method: 'POST', signal: controller.signal });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('The AI review took longer than 4 minutes. Check that Ollama is running, then try again.');
-    }
-    throw error;
-  } finally {
-    window.clearTimeout(timeout);
-  }
+export interface StoredChatAiReview {
+  exists: boolean;
+  status: 'pending' | 'processing' | 'ready' | 'failed';
+  review: ChatAiReview | null;
+  error: string | null;
+  updatedAt: number | null;
+}
+
+export async function apiGetAiReview(): Promise<StoredChatAiReview> {
+  return apiFetch('/api/ai/summary');
+}
+
+export async function apiQueueAiReview(): Promise<void> {
+  await apiFetch('/api/ai/summary', { method: 'POST' });
 }

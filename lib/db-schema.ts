@@ -70,4 +70,19 @@ export async function initDatabase(): Promise<void> {
       FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+
+  await pool.execute(`
+    CREATE TABLE IF NOT EXISTS ai_chat_reviews (
+      user_id INT PRIMARY KEY,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      revision INT NOT NULL DEFAULT 0,
+      processed_revision INT NOT NULL DEFAULT 0,
+      review JSON DEFAULT NULL,
+      last_error TEXT DEFAULT NULL,
+      started_at TIMESTAMP NULL DEFAULT NULL,
+      completed_at TIMESTAMP NULL DEFAULT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 }
