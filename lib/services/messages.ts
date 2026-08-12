@@ -94,6 +94,15 @@ export async function getMessages(userId: number, limit = PAGE_SIZE): Promise<Me
   return rows.map(mapMessage);
 }
 
+/** The AI review is deliberately capped so one request cannot exhaust the server. */
+export async function getMessagesForAiReview(userId: number, limit = 300): Promise<Message[]> {
+  const rows = await query<Array<Record<string, unknown>>>(
+    'SELECT * FROM messages WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+    [userId, limit]
+  );
+  return rows.map(mapMessage).reverse();
+}
+
 export async function loadOlderMessages(
   userId: number,
   cursorId: number,

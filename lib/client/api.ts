@@ -139,3 +139,33 @@ export async function apiUploadVoiceNote(
 export async function apiDeleteMessageWithFile(userId: string, message: Message): Promise<void> {
   await apiDeleteMessage(userId, message.id);
 }
+
+export interface ChatReminder {
+  task: string;
+  due: string | null;
+  source: string;
+  evidence: string;
+}
+
+export interface ChatAiReview {
+  summary: string;
+  highlights: string[];
+  reminders: ChatReminder[];
+  analyzed: { text: number; images: number; audio: number; videos: number };
+  warnings: string[];
+}
+
+export async function apiCreateAiReview(): Promise<ChatAiReview> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 240_000);
+  try {
+    return await apiFetch('/api/ai/summary', { method: 'POST', signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('The AI review took longer than 4 minutes. Check that Ollama is running, then try again.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}

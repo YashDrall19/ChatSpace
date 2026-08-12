@@ -43,3 +43,6 @@ Thumbs.db
 
 # local config
 *.local
+
+# Downloaded local speech models are runtime assets, not source code.
+models/

@@ -80,9 +80,9 @@ function AudioPlayer({ message }: MessageMediaProps) {
         onEnded={() => setPlaying(false)}
         className="hidden"
       />
-      <a href={message.fileUrl} download className="text-muted-foreground hover:text-foreground">
+      {/* <a href={message.fileUrl} download className="text-muted-foreground hover:text-foreground">
         <Download className="h-4 w-4" />
-      </a>
+      </a> */}
     </div>
   );
 }

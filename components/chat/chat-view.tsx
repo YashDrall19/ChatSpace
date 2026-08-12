@@ -8,6 +8,7 @@ import { MessageInput } from '@/components/chat/message-input';
 import { PinnedBar } from '@/components/chat/pinned-bar';
 import { SearchBar } from '@/components/chat/search-bar';
 import { StarredPanel } from '@/components/chat/starred-panel';
+import { AiReviewDialog } from '@/components/chat/ai-review-dialog';
 import { MessageSquare, Star, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiSearchMessages as searchMessages } from '@/lib/client/api';
@@ -78,6 +79,7 @@ export function ChatView({ userId }: ChatViewProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <AiReviewDialog />
           <Button
             variant={showSearch ? 'default' : 'ghost'}
             size="icon"
